@@ -29,24 +29,24 @@ func GinMiddleware(allowOrigin string) gin.HandlerFunc {
 
 func main() {
 	router := gin.New()
-
 	server := socketio.NewServer(nil)
 
 	server.OnConnect("/", func(s socketio.Conn) error {
 		s.SetContext("")
+		s.Join("myroom") // Join from client side
 		log.Println("connected:", s.ID())
 		return nil
 	})
-
-	server.OnEvent("/", "notice", func(s socketio.Conn, msg string) {
-		log.Println("notice:", msg)
-		s.Emit("reply", "have "+msg)
-	})
-
-	server.OnEvent("/chat", "msg", func(s socketio.Conn, msg string) string {
+	
+	server.OnEvent("/", "msg", func(s socketio.Conn, msg string) {
 		s.SetContext(msg)
-		server.BroadcastToNamespace("/chat", "msg", msg)
-		return "recv " + msg
+
+		// Broadcast to all clients in the room "myroom"
+		server.ForEach("/", "myroom", func(c socketio.Conn) {
+			if c.ID() != s.ID() {
+				c.Emit("msg", msg)
+			}
+		})
 	})
 
 	server.OnEvent("/", "bye", func(s socketio.Conn) string {
@@ -76,7 +76,7 @@ func main() {
 	router.POST("/socket.io/*any", gin.WrapH(server))
 	router.StaticFS("/public", http.Dir("./asset"))
 
-	if err := router.Run("127.0.0.1:8000"); err != nil {
+	if err := router.Run(":8222"); err != nil {
 		log.Fatal("failed run app: ", err)
 	}
 }
