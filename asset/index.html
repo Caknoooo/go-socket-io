@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,124 +11,216 @@
       padding: 0;
       box-sizing: border-box;
     }
+
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f7f9fc;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f1f3f6;
       display: flex;
       flex-direction: column;
       height: 100vh;
     }
+
     header {
-      background-color: #007bff;
-      color: #fff;
-      padding: 10px;
+      background-color: #4CAF50;
+      color: white;
+      padding: 20px;
       text-align: center;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-bottom: 2px solid #0056b3;
+      border-bottom: 3px solid #388E3C;
     }
-    header img {
-      height: 50px;
-      margin-right: 10px;
-    }
+
     header h1 {
-      font-size: 24px;
+      font-size: 28px;
       margin: 0;
     }
-    #messageList {
-      flex: 1;
-      overflow-y: auto;
-      padding: 20px;
-      background-color: #fff;
-      border-bottom: 2px solid #e1e1e1;
-    }
-    #messageList p {
-      margin: 10px 0;
-      padding: 10px;
-      border-radius: 10px;
-      max-width: 100%;
-      line-height: 1.5;
-      font-size: 16px;
-    }
-    #messageList p.sent {
-      background-color: #e1f5fe;
-      align-self: flex-end;
-      text-align: right;
-    }
-    #messageList p.received {
-      background-color: #f1f1f1;
-      align-self: flex-start;
-      text-align: left;
-    }
-    form {
+
+    #login,
+    #userList,
+    #chatSection {
       display: flex;
-      padding: 10px;
-      background: #fff;
-      border-top: 2px solid #e1e1e1;
-    }
-    form input {
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
       flex: 1;
-      padding: 12px;
-      border: 1px solid #ccc;
-      border-radius: 20px;
-      margin-right: 10px;
-      font-size: 16px;
+      padding: 20px;
     }
+
+    #login input,
+    #userList select,
+    form input {
+      padding: 12px 15px;
+      font-size: 16px;
+      border: 2px solid #ccc;
+      border-radius: 25px;
+      margin-bottom: 20px;
+      width: 80%;
+      max-width: 400px;
+    }
+
+    #login button,
+    #userList button,
     form button {
-      background-color: #007bff;
-      border: none;
+      background-color: #4CAF50;
       color: white;
-      padding: 12px 20px;
-      border-radius: 20px;
+      padding: 12px 25px;
+      border: none;
+      border-radius: 25px;
       cursor: pointer;
       font-size: 16px;
       transition: background-color 0.3s;
     }
+
+    #login button:hover,
+    #userList button:hover,
     form button:hover {
-      background-color: #0056b3;
+      background-color: #388E3C;
     }
+
+    #login button:active,
+    #userList button:active,
     form button:active {
-      background-color: #004494;
+      background-color: #2E7D32;
     }
+
+    #messageList {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      background-color: #ffffff;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 800px;
+      margin: 20px auto;
+    }
+
+    #messageList p {
+      margin: 10px 0;
+      padding: 12px;
+      border-radius: 20px;
+      font-size: 16px;
+      max-width: 80%;
+      word-wrap: break-word;
+    }
+
+    #messageList p.sent {
+      background-color: #E0F7FA;
+      align-self: flex-end;
+      text-align: right;
+      margin-left: auto;
+    }
+
+    #messageList p.received {
+      background-color: #E8F5E9;
+      align-self: flex-start;
+      text-align: left;
+      margin-right: auto;
+    }
+
+    #chatForm {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 90%;
+      max-width: 800px;
+    }
+
+    #chatForm input {
+      margin: 0 10px;
+    }
+    
   </style>
 </head>
+
 <body>
   <header>
-    <h1>Simple Socket.IO Chat by <a href="https://github.com/Caknoooo" style="color: white; ">Caknoo</a></h1>
+    <h1>Simple Socket.IO Chat by <a href="https://github.com/Caknoooo" style="color: white;">Caknoo</a></h1>
   </header>
 
-  <div id="messageList"></div>
+  <div id="login">
+    <input id="username" autocomplete="off" placeholder="Enter your name..." />
+    <button id="joinChat">Join Chat</button>
+  </div>
 
-  <form id="chatForm">
-    <input id="m" autocomplete="off" placeholder="Type your message..." />
-    <button type="submit">Send</button>
-  </form>
+  <div id="userList" style="display:none;">
+    <h3>Select a user to chat with:</h3>
+    <select id="usersDropdown">
+      <option value="" disabled selected>Select a user</option>
+    </select>
+    <button id="startChat">Start Chat</button>
+  </div>
+
+  <div id="chatSection" style="display: none;">
+    <div id="messageList"></div>
+
+    <form id="chatForm">
+      <input id="m" autocomplete="off" placeholder="Type your message..." />
+      <button type="submit">Send</button>
+    </form>
+  </div>
 
   <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
   <script>
     const socket = io("/");
+    const loginSection = document.getElementById('login');
+    const chatSection = document.getElementById('chatSection');
+    const userListSection = document.getElementById('userList');
+    const usernameInput = document.getElementById('username');
+    const joinChatButton = document.getElementById('joinChat');
+    const usersDropdown = document.getElementById('usersDropdown');
+    const startChatButton = document.getElementById('startChat');
     const form = document.getElementById('chatForm');
     const input = document.getElementById('m');
     const messageList = document.getElementById('messageList');
+    let currentUser = '';
+    let selectedUser = '';
 
-    form.addEventListener('submit', function(e) {
+    joinChatButton.addEventListener('click', function () {
+      const username = usernameInput.value;
+      if (username) {
+        currentUser = username;
+        socket.emit('joinChat', username);
+        loginSection.style.display = 'none';
+        userListSection.style.display = 'block';
+      }
+    });
+
+    socket.on('updateUserList', function (users) {
+      usersDropdown.innerHTML = '<option value="" disabled selected>Select a user</option>';
+      users.forEach(user => {
+        if (user !== currentUser) {
+          let option = document.createElement('option');
+          option.value = user;
+          option.textContent = user;
+          usersDropdown.appendChild(option);
+        }
+      });
+    });
+
+    startChatButton.addEventListener('click', function () {
+      selectedUser = usersDropdown.value;
+      if (selectedUser) {
+        socket.emit('startChat', { from: currentUser, to: selectedUser });
+        userListSection.style.display = 'none';
+        chatSection.style.display = 'block';
+      }
+    });
+
+    form.addEventListener('submit', function (e) {
       e.preventDefault();
       const message = input.value;
-      
       if (message) {
-        socket.emit('msg', message);
+        socket.emit('msg', { to: selectedUser, message });
         let p = document.createElement('p');
         p.className = 'sent';
         p.textContent = message;
         messageList.appendChild(p);
-        
+
         input.value = '';
         messageList.scrollTop = messageList.scrollHeight;
       }
     });
 
-    socket.on('msg', function(msg) {
+    socket.on('msg', function (msg) {
       let p = document.createElement('p');
       p.className = 'received';
       p.textContent = msg;
@@ -136,4 +229,5 @@
     });
   </script>
 </body>
+
 </html>

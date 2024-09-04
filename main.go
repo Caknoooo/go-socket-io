@@ -5,9 +5,10 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-
 	socketio "github.com/googollee/go-socket.io"
 )
+
+var users = make(map[string]string) 
 
 func GinMiddleware(allowOrigin string) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -32,35 +33,33 @@ func main() {
 	server := socketio.NewServer(nil)
 
 	server.OnConnect("/", func(s socketio.Conn) error {
-		s.SetContext("")
-		s.Join("myroom") // Join from client side
 		log.Println("connected:", s.ID())
 		return nil
 	})
-	
-	server.OnEvent("/", "msg", func(s socketio.Conn, msg string) {
-		s.SetContext(msg)
 
-		// Broadcast to all clients in the room "myroom"
-		server.ForEach("/", "myroom", func(c socketio.Conn) {
+	server.OnEvent("/", "joinChat", func(s socketio.Conn, username string) {
+		users[s.ID()] = username
+		updateUserList(server)
+	})
+
+	server.OnEvent("/", "startChat", func(s socketio.Conn, data map[string]string) {
+		room := createRoom(data["from"], data["to"])
+		s.Join(room)
+		log.Println(data["from"], "started chat with", data["to"], "in room", room)
+	})
+
+	server.OnEvent("/", "msg", func(s socketio.Conn, data map[string]string) {
+		room := createRoom(users[s.ID()], data["to"])
+		server.ForEach("/", room, func(c socketio.Conn) {
 			if c.ID() != s.ID() {
-				c.Emit("msg", msg)
+				c.Emit("msg", data["message"])
 			}
 		})
 	})
 
-	server.OnEvent("/", "bye", func(s socketio.Conn) string {
-		last := s.Context().(string)
-		s.Emit("bye", last)
-		s.Close()
-		return last
-	})
-
-	server.OnError("/", func(s socketio.Conn, e error) {
-		log.Println("meet error:", e)
-	})
-
 	server.OnDisconnect("/", func(s socketio.Conn, msg string) {
+		delete(users, s.ID())
+		updateUserList(server)
 		log.Println("closed", msg)
 	})
 
@@ -76,7 +75,22 @@ func main() {
 	router.POST("/socket.io/*any", gin.WrapH(server))
 	router.StaticFS("/public", http.Dir("./asset"))
 
-	if err := router.Run(":8222"); err != nil {
+	if err := router.Run("127.0.0.1:8222"); err != nil {
 		log.Fatal("failed run app: ", err)
 	}
+}
+
+func updateUserList(server *socketio.Server) {
+	var userList []string
+	for _, username := range users {
+		userList = append(userList, username)
+	}
+	server.BroadcastToNamespace("/", "updateUserList", userList)
+}
+
+func createRoom(user1, user2 string) string {
+	if user1 < user2 {
+		return user1 + "_" + user2
+	}
+	return user2 + "_" + user1
 }
