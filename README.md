@@ -11,6 +11,16 @@ Before you begin, ensure you have the following installed:
 - [Go](https://golang.org/doc/install) (latest version recommended)
 - [Socket.IO](https://socket.io/)
 
+### Demo
+
+Demo with multiple client 
+
+https://github.com/user-attachments/assets/e8124140-95b0-4b70-a89a-f2e2ca4d8c76
+
+Demo with specific client
+
+
+
 ## Installation
 
 1. **Clone the Repository:**
