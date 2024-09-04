@@ -13,12 +13,13 @@ Before you begin, ensure you have the following installed:
 
 ### Demo
 
-Demo with multiple client 
+**Demo with multiple client** 
 
 https://github.com/user-attachments/assets/e8124140-95b0-4b70-a89a-f2e2ca4d8c76
 
-Demo with specific client
+**Demo with specific client (on branch -> chat-specific-user)** 
 
+https://github.com/user-attachments/assets/3308a7b0-a0d6-4fe8-8577-a5b1930910a0
 
 
 ## Installation
