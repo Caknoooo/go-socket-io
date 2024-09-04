@@ -75,7 +75,7 @@ func main() {
 	router.POST("/socket.io/*any", gin.WrapH(server))
 	router.StaticFS("/public", http.Dir("./asset"))
 
-	if err := router.Run("127.0.0.1:8222"); err != nil {
+	if err := router.Run("127.0.0.1:8223"); err != nil {
 		log.Fatal("failed run app: ", err)
 	}
 }
